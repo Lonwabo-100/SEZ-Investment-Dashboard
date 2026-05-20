@@ -114,6 +114,6 @@ No additional dependencies, build tools, or local server setup are required.
 ## Author
 
 Lonwabo Nqamra
-Computer Engineering Graduate
+(Computer Engineering Graduate)
 
 LinkedIn: www.linkedin.com/in/lonwabo-nqamra-96b2572a6
