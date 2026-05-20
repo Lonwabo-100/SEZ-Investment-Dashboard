@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SEZ Investment & Performance Dashboard</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="dashboard-container">
+        <aside class="sidebar">
+            <h2>ZoneMonitor</h2>
+            <nav>
+                <button class="nav-btn active" onclick="setSector('all')">All Sectors</button>
+                <button class="nav-btn" onclick="setSector('automotive')">Automotive</button>
+                <button class="nav-btn" onclick="setSector('energy')">Energy & Green Tech</button>
+                <button class="nav-btn" onclick="setSector('logistics')">Logistics & Infra</button>
+            </nav>
+        </aside>
+
+        <main class="main-content">
+            <header>
+                <div>
+                    <h1>Investment & Operational Performance</h1>
+                    <p id="current-date"></p>
+                </div>
+                <div class="action-buttons">
+                    <button class="btn btn-primary" onclick="openModal()">+ Register Enterprise</button>
+                    <button class="btn btn-secondary" onclick="exportToCSV()">Export to CSV</button>
+                </div>
+            </header>
+
+            <section class="kpi-row">
+                <div class="card">
+                    <h3>Total Capital Attracted</h3>
+                    <p class="metric" id="kpi-fdi">$0.0M</p>
+                </div>
+                <div class="card">
+                    <h3>Active Capital Projects</h3>
+                    <p class="metric" id="kpi-projects">0</p>
+                </div>
+                <div class="card">
+                    <h3>Socio-Economic Jobs</h3>
+                    <p class="metric" id="kpi-jobs">0</p>
+                </div>
+            </section>
+
+            <section class="chart-section">
+                <canvas id="investmentChart"></canvas>
+            </section>
+
+            <section class="table-section">
+                <div class="table-header">
+                    <h2>Active Enterprise Tenants</h2>
+                    <input type="text" id="searchInput" placeholder="Search enterprise name..." onkeyup="handleSearch()">
+                </div>
+                <table id="tenant-table">
+                    <thead>
+                        <tr>
+                            <th onclick="handleSort('name')">Enterprise Name ⇕</th>
+                            <th onclick="handleSort('sector')">Sector ⇕</th>
+                            <th onclick="handleSort('investment')">Investment (M) ⇕</th>
+                            <th onclick="handleSort('jobs')">Jobs ⇕</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="table-body">
+                        </tbody>
+                </table>
+            </section>
+        </main>
+    </div>
+
+    <div id="registerModal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeModal()">&times;</span>
+            <h2>Register New Enterprise</h2>
+            <form id="tenantForm">
+                <label>Enterprise Name</label>
+                <input type="text" id="formName" required>
+                
+                <label>Sector</label>
+                <select id="formSector" required>
+                    <option value="automotive">Automotive</option>
+                    <option value="energy">Energy & Green Tech</option>
+                    <option value="logistics">Logistics & Infra</option>
+                </select>
+
+                <label>Investment Value ($M)</label>
+                <input type="number" step="0.1" id="formInvestment" required>
+
+                <label>Jobs Created</label>
+                <input type="number" id="formJobs" required>
+
+                <label>Status</label>
+                <select id="formStatus" required>
+                    <option value="Operational">Operational</option>
+                    <option value="Construction">Construction</option>
+                </select>
+
+                <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 15px;">Submit Enterprise</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
