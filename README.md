@@ -1,4 +1,5 @@
 # SEZ Investment & Performance Dashboard
+[View the Live Dashboard Here](https://lonwabo-100.github.io/SEZ-Investment-Dashboard/)
 
 ## Overview
 
