@@ -5,9 +5,9 @@ let enterpriseData = [
     { name: "African Port Logistics", sector: "logistics", investment: 45.2, jobs: 300, status: "Operational" },
     { name: "Electrawinds", sector: "energy", investment: 110.0, jobs: 200, status: "Operational" },
     { name: "BAIC South Africa", sector: "automotive", investment: 85.5, jobs: 450, status: "Construction" },
-    { name: "UPS", sector: "logistics", investment: 50.0, jobs: 180, status: "Operational" }
+    { name: "UPS", sector: "logistics", investment: 50.0, jobs: 180, status: "Operational" },
     { name: "Benteler Automotive", sector: "automotive", investment: 40,6, jobs: 300, status: "Operational" },
-    { name: "DHL", sector: "logistics", investment: 22.0, jobs: 90, status: "Operational" }
+    { name: "DHL", sector: "logistics", investment: 22.0, jobs: 90, status: "Operational" },
     { name: "Eskom", sector: "energy", investment: 50.0, jobs: 100, status: "Construction" },
 ];
 
