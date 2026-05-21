@@ -13,95 +13,120 @@ let enterpriseData = [
 
 let currentSectorFilter = 'all';
 let currentSearchQuery = '';
-let analyticsChart = null;
+let sortColumn = '';
+let sortDirection = true; // true = ASC, false = DESC
+let chartInstance = null;
 
 document.addEventListener('DOMContentLoaded', () => {
-    initDashboard();
-    setupEventListeners();
+    setCurrentDate();
+    filterAndRender();
+    setupFormListener();
 });
 
-function initDashboard() {
-    filterAndRender();
+function setCurrentDate() {
+    const dateEl = document.getElementById('current-date');
+    if (dateEl) {
+        const options = { year: 'numeric', month: 'long', day: 'numeric' };
+        dateEl.innerText = new Date().toLocaleDateString('en-ZA', options);
+    }
 }
 
+function normalizeSector(sectorStr) {
+    const s = sectorStr.toLowerCase();
+    if (s.includes('auto')) return 'automotive';
+    if (s.includes('energ')) return 'energy';
+    if (s.includes('logis')) return 'logistics';
+    return s;
+}
 
 function filterAndRender() {
-    const filteredData = enterpriseData.filter(ent => {
-        const matchesSector = currentSectorFilter.toLowerCase() === 'all' || 
-                              ent.sector.toLowerCase() === currentSectorFilter.toLowerCase();
+    
+    let processedData = enterpriseData.filter(ent => {
+        const tenantSector = normalizeSector(ent.sector);
+        const filterSector = normalizeSector(currentSectorFilter);
         
-        const matchesSearch = ent.name.toLowerCase().includes(currentSearchQuery.toLowerCase()) ||
-                              ent.sector.toLowerCase().includes(currentSearchQuery.toLowerCase());
+        const matchesSector = filterSector === 'all' || tenantSector === filterSector;
+        const matchesSearch = ent.name.toLowerCase().includes(currentSearchQuery.toLowerCase());
         
         return matchesSector && matchesSearch;
     });
 
-    renderTable(filteredData);
-    updateMetrics(filteredData);
-    renderCharts(filteredData);
+    if (sortColumn) {
+        processedData.sort((a, b) => {
+            let valA = a[sortColumn];
+            let valB = b[sortColumn];
+
+            if (typeof valA === 'string') {
+                return sortDirection ? valA.localeCompare(valB) : valB.localeCompare(valA);
+            } else {
+                return sortDirection ? valA - valB : valB - valA;
+            }
+        });
+    }
+
+    renderTable(processedData);
+    updateKPIs(processedData);
+    renderChart(processedData);
 }
 
 function renderTable(data) {
-    const tableBody = document.getElementById('enterpriseTableBody');
-    if (!tableBody) return;
-
-    tableBody.innerHTML = '';
+    const tbody = document.getElementById('table-body');
+    if (!tbody) return;
+    tbody.innerHTML = '';
 
     if (data.length === 0) {
-        tableBody.innerHTML = `<tr><td colspan="5" style="text-align:center;">No matching enterprises found</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; padding: 20px;">No enterprises found matching criteria.</td></tr>`;
         return;
     }
 
     data.forEach(ent => {
-        // Defensive mapping for CSS status classes
         const statusClass = ent.status.toLowerCase() === 'operational' ? 'operational' : 'construction';
-        
         const row = document.createElement('tr');
         row.innerHTML = `
             <td><strong>${ent.name}</strong></td>
-            <td><span class="sector-tag">${ent.sector}</span></td>
+            <td>${ent.sector}</td>
             <td>R ${ent.investment.toFixed(1)} M</td>
             <td>${ent.jobs.toLocaleString()}</td>
             <td><span class="status-badge ${statusClass}">${ent.status}</span></td>
         `;
-        tableBody.appendChild(row);
+        tbody.appendChild(row);
     });
 }
 
-function updateMetrics(data) {
-    const totalInvestmentEl = document.getElementById('totalInvestment');
-    const totalJobsEl = document.getElementById('totalJobs');
-    const activeTenantsEl = document.getElementById('activeTenants');
+function updateKPIs(data) {
+    const fdiEl = document.getElementById('kpi-fdi');
+    const projectsEl = document.getElementById('kpi-projects');
+    const jobsEl = document.getElementById('kpi-jobs');
 
-    const totalInvestment = data.reduce((sum, ent) => sum + ent.investment, 0);
-    const totalJobs = data.reduce((sum, ent) => sum + ent.jobs, 0);
+    const totalFDI = data.reduce((sum, item) => sum + item.investment, 0);
+    const totalJobs = data.reduce((sum, item) => sum + item.jobs, 0);
 
-    if (totalInvestmentEl) totalInvestmentEl.innerText = `R ${totalInvestment.toFixed(1)} M`;
-    if (totalJobsEl) totalJobsEl.innerText = totalJobs.toLocaleString();
-    if (activeTenantsEl) activeTenantsEl.innerText = data.length;
+    if (fdiEl) fdiEl.innerText = `R ${totalFDI.toFixed(1)} M`;
+    if (projectsEl) projectsEl.innerText = data.length;
+    if (jobsEl) jobsEl.innerText = totalJobs.toLocaleString();
 }
 
-function renderCharts(data) {
-    const chartCtx = document.getElementById('analyticsChart');
-    if (!chartCtx) return;
+function renderChart(data) {
+    const canvas = document.getElementById('investmentChart');
+    if (!canvas) return;
 
     const sectors = ['Automotive', 'Energy', 'Logistics'];
-    const investmentPerSector = sectors.map(sec => {
-        return data.filter(ent => ent.sector.toLowerCase() === sec.toLowerCase())
+    const sums = sectors.map(sec => {
+        return data.filter(ent => normalizeSector(ent.sector) === normalizeSector(sec))
                    .reduce((sum, ent) => sum + ent.investment, 0);
     });
 
-    if (analyticsChart) {
-        analyticsChart.destroy();
+    if (chartInstance) {
+        chartInstance.destroy();
     }
 
-    analyticsChart = new Chart(chartCtx, {
+    chartInstance = new Chart(canvas, {
         type: 'bar',
         data: {
             labels: sectors,
             datasets: [{
-                label: 'FDI Allocation (Millions of Rands)',
-                data: investmentPerSector,
+                label: 'Capital Invested (Millions of Rands)',
+                data: sums,
                 backgroundColor: ['#3b82f6', '#10b981', '#f59e0b'],
                 borderRadius: 6
             }]
@@ -109,9 +134,6 @@ function renderCharts(data) {
         options: {
             responsive: true,
             maintainAspectRatio: false,
-            plugins: {
-                legend: { display: false }
-            },
             scales: {
                 y: { beginAtZero: true }
             }
@@ -119,76 +141,100 @@ function renderCharts(data) {
     });
 }
 
-function setupEventListeners() {
-    // Live Search Event
-    const searchBar = document.getElementById('searchBar');
-    if (searchBar) {
-        searchBar.addEventListener('input', (e) => {
-            currentSearchQuery = e.target.value;
-            filterAndRender();
-        });
+window.setSector = function(sector) {
+    currentSectorFilter = sector;
+    
+    document.querySelectorAll('.nav-btn').forEach(btn => {
+        const attr = btn.getAttribute('onclick');
+        if (attr && attr.includes(`'${sector}'`)) {
+            btn.classList.add('active');
+        } else {
+            btn.classList.remove('active');
+        }
+    });
+    filterAndRender();
+};
+
+window.handleSearch = function() {
+    const searchInput = document.getElementById('searchInput');
+    if (searchInput) {
+        currentSearchQuery = searchInput.value;
+        filterAndRender();
     }
+};
 
-    const sectorFilterContainer = document.getElementById('sectorFilterContainer');
-    const sectorSelectDropdown = document.getElementById('sectorSelect');
-
-    if (sectorFilterContainer) {
-
-        sectorFilterContainer.addEventListener('click', (e) => {
-            if (e.target.tagName === 'BUTTON' || e.target.classList.contains('filter-btn')) {
-                document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-                e.target.classList.add('active');
-                currentSectorFilter = e.target.getAttribute('data-sector') || e.target.innerText;
-                filterAndRender();
-            }
-        });
-    } else if (sectorSelectDropdown) {
-        
-        sectorSelectDropdown.addEventListener('change', (e) => {
-            currentSectorFilter = e.target.value;
-            filterAndRender();
-        });
+window.handleSort = function(column) {
+    if (sortColumn === column) {
+        sortDirection = !sortDirection;
+    } else {
+        sortColumn = column;
+        sortDirection = true;
     }
+    filterAndRender();
+};
 
-    const addTenantForm = document.getElementById('addTenantForm');
-    if (addTenantForm) {
-        addTenantForm.addEventListener('submit', (e) => {
-            e.preventDefault();
-            
-            const name = document.getElementById('tenantName').value;
-            const sector = document.getElementById('tenantSector').value;
-            const investment = parseFloat(document.getElementById('tenantInvestment').value);
-            const jobs = parseInt(document.getElementById('tenantJobs').value, 10);
-            const status = document.getElementById('tenantStatus').value || 'Operational';
+window.openModal = function() {
+    const modal = document.getElementById('registerModal');
+    if (modal) modal.style.display = 'block';
+};
 
-            if (name && sector && !isNaN(investment) && !isNaN(jobs)) {
-                enterpriseData.push({ name, sector, investment, jobs, status });
-                filterAndRender();
-                addTenantForm.reset();
-                
-                const modalToggle = document.getElementById('modalToggleCheckbox');
-                if (modalToggle) modalToggle.checked = false;
-                if (typeof closeModal === 'function') closeModal(); 
-            }
-        });
+window.closeModal = function() {
+    const modal = document.getElementById('registerModal');
+    if (modal) modal.style.display = 'none';
+};
+
+window.onclick = function(event) {
+    const modal = document.getElementById('registerModal');
+    if (event.target === modal) {
+        modal.style.display = 'none';
     }
+};
 
-    const exportBtn = document.getElementById('exportCsvBtn');
-    if (exportBtn) {
-        exportBtn.addEventListener('click', () => {
-            let csvContent = "data:text/csv;charset=utf-8,Enterprise Name,Sector,Investment (M),Jobs Created,Status\n";
-            
-            enterpriseData.forEach(ent => {
-                csvContent += `"${ent.name}","${ent.sector}",${ent.investment},${ent.jobs},"${ent.status}"\n`;
+window.exportToCSV = function() {
+    let csv = "Enterprise Name,Sector,Investment (M),Jobs Created,Status\n";
+    enterpriseData.forEach(ent => {
+        csv += `"${ent.name}","${ent.sector}",${ent.investment},${ent.jobs},"${ent.status}"\n`;
+    });
+
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", "Coega_SEZ_Tenant_Report.csv");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+};
+
+function setupFormListener() {
+    const form = document.getElementById('tenantForm');
+    if (!form) return;
+
+    form.addEventListener('submit', (e) => {
+        e.preventDefault();
+
+        const name = document.getElementById('formName').value;
+        const rawSector = document.getElementById('formSector').value;
+        const investment = parseFloat(document.getElementById('formInvestment').value);
+        const jobs = parseInt(document.getElementById('formJobs').value, 10);
+        const status = document.getElementById('formStatus').value;
+
+        let mappedSector = "Automotive";
+        if (rawSector === "energy") mappedSector = "Energy";
+        if (rawSector === "logistics") mappedSector = "Logistics";
+
+        if (name && !isNaN(investment) && !isNaN(jobs)) {
+            enterpriseData.push({
+                name: name,
+                sector: mappedSector,
+                investment: investment,
+                jobs: jobs,
+                status: status
             });
 
-            const encodedUri = encodeURI(csvContent);
-            const link = document.createElement("a");
-            link.setAttribute("href", encodedUri);
-            link.setAttribute("download", "SEZ_Enterprise_Performance_Report.csv");
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-        });
-    }
+            filterAndRender();
+            form.reset();
+            closeModal();
+        }
+    });
 }
