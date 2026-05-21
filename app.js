@@ -8,7 +8,7 @@ let enterpriseData = [
     { name: "UPS", sector: "logistics", investment: 50.0, jobs: 180, status: "Operational" },
     { name: "Benteler Automotive", sector: "automotive", investment: 40,6, jobs: 300, status: "Operational" },
     { name: "DHL", sector: "logistics", investment: 22.0, jobs: 90, status: "Operational" },
-    { name: "Eskom", sector: "energy", investment: 50.0, jobs: 100, status: "Construction" },
+    { name: "Eskom", sector: "energy", investment: 50.0, jobs: 100, status: "Construction" }
 ];
 
 let currentSector = 'all';
