@@ -1,10 +1,14 @@
 let enterpriseData = [
-    { name: "Apex Auto Assembly", sector: "automotive", investment: 150.5, jobs: 1200, status: "Operational" },
-    { name: "LithiumTech Batteries", sector: "energy", investment: 320.0, jobs: 850, status: "Construction" },
-    { name: "TransGlobal Freight", sector: "logistics", investment: 45.2, jobs: 300, status: "Operational" },
-    { name: "Solaris Green Grid", sector: "energy", investment: 110.0, jobs: 200, status: "Operational" },
-    { name: "Velocity Components", sector: "automotive", investment: 85.5, jobs: 450, status: "Construction" },
-    { name: "MMG Storage Solutions", sector: "logistics", investment: 22.0, jobs: 90, status: "Operational" }
+    { name: "FAW South Africa Trucks", sector: "automotive", investment: 150.5, jobs: 1200, status: "Operational" },
+    { name: "Dedisa Peaking Power Plant", sector: "energy", investment: 320.0, jobs: 850, status: "Operational" },
+    { name: "Volkswagen", sector: "automotive", investment: 30, jobs: 250, status: "Construction" },
+    { name: "African Port Logistics", sector: "logistics", investment: 45.2, jobs: 300, status: "Operational" },
+    { name: "Electrawinds", sector: "energy", investment: 110.0, jobs: 200, status: "Operational" },
+    { name: "BAIC South Africa", sector: "automotive", investment: 85.5, jobs: 450, status: "Construction" },
+    { name: "UPS", sector: "logistics", investment: 50.0, jobs: 180, status: "Operational" }
+    { name: "Benteler Automotive", sector: "automotive", investment: 40,6, jobs: 300, status: "Operational" },
+    { name: "DHL", sector: "logistics", investment: 22.0, jobs: 90, status: "Operational" }
+    { name: "Eskom", sector: "energy", investment: 50.0, jobs: 100, status: "Construction" },
 ];
 
 let currentSector = 'all';
